@@ -1,1 +1,1 @@
-# 842_project
+# CSE 842 Project
