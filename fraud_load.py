@@ -14,6 +14,7 @@ import re
 def feature_engineer(df):
     dl_path = './nltk_data'
     nltk.download('punkt', download_dir=dl_path)
+    nltk.download('punkt_tab', download_dir=dl_path)
     nltk.download('wordnet', download_dir=dl_path)
     nltk.download('stopwords', download_dir=dl_path)
     nltk.download('averaged_perceptron_tagger', download_dir=dl_path)
@@ -48,3 +49,5 @@ def load_df():
     df = pd.read_csv('fraud.csv')
     df = feature_engineer(df)
     return df
+
+data = load_df()
