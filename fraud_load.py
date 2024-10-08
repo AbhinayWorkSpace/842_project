@@ -12,6 +12,28 @@ import string
 import re
 
 def feature_engineer(df):
+    def get_pos_counts(text):
+        tokens = word_tokenize(text)
+        pos_tags = nltk.pos_tag(tokens)
+        return pd.Series(dict(pd.DataFrame(pos_tags)[1].value_counts()))
+
+    def flesch_kincaid_grade(text):
+        sents = sent_tokenize(text)
+        words = word_tokenize(text)
+        num_syllables = sum([count_sylls(w) for w in words])
+
+        if len(sents) == 0 or len(words) == 0:
+            return 0
+
+        return 0.39 * (len(words) / len(sents)) + 11.8 * (num_syllables / len(words)) - 15.59
+
+    # This definitely needs to be checked
+    def count_sylls(word):
+        return len(
+            re.findall('(?!e$)[aeiouy]+', word.lower(), re.I) +
+            re.findall('^[^aeiouy]*e$', word.lower(), re.I)
+        )
+
     dl_path = './nltk_data'
     nltk.download('punkt', download_dir=dl_path)
     nltk.download('punkt_tab', download_dir=dl_path)
@@ -43,6 +65,25 @@ def feature_engineer(df):
     df['text_length'] = df['text'].apply(len)
     df['word_count'] = df['text'].apply(lambda x: len(x.split()))
     df['sentence_count'] = df['text'].apply(lambda x: len(sent_tokenize(x)))
+    df['avg_word_length'] = df['text'].apply(lambda x: np.mean([len(w) for w in x.split()]))
+    df['avg_sentence_length'] = df['text'].apply(lambda x: np.mean([len(sent.split()) for sent in sent_tokenize(x)]))
+    df['punctuation_count'] = df['text'].apply(lambda x: len([c for c in x if c in string.punctuation]))
+    # df['stopword_count'] = df['text'].apply(lambda x: len([w for w in x.split() if w in stopwords.words('english')]))
+    df['punctuation_ratio'] = df['punctuation_count'] / df['text_length']
+    df['uppercase_ratio'] = df['text'].apply(lambda x: len([c for c in x if c.isupper()])) / df['text_length']
+
+    pos_counts = df['text'].apply(get_pos_counts)
+    pos_feats = pos_counts.add_prefix('pos_')
+    df = pd.concat([df, pos_feats], axis=1)
+
+    tfidf = TfidfVectorizer(max_features=100, stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(df['text'])
+    tfidf_feature_names = tfidf.get_feature_names_out()
+    tfidf_features = pd.DataFrame(tfidf_matrix.toarray(), columns=tfidf_feature_names)
+    df = pd.concat([df, tfidf_features], axis=1)
+
+
+
     return df
 
 def load_df():
@@ -51,3 +92,5 @@ def load_df():
     return df
 
 data = load_df()
+# save data to a new file
+data.to_csv('fraud_engineered.csv', index=False)
