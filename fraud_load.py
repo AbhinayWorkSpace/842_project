@@ -6,6 +6,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
+# i'm not sure if we want to use these, need to look into it a little more still
 from gensim import corpora
 from gensim.models import LdaMulticore
 import string
@@ -40,6 +41,7 @@ def feature_engineer(df):
     nltk.download('wordnet', download_dir=dl_path)
     nltk.download('stopwords', download_dir=dl_path)
     nltk.download('averaged_perceptron_tagger', download_dir=dl_path)
+    nltk.download('averaged_perceptron_tagger_eng', download_dir=dl_path)
     nltk.data.path.append(dl_path)
 
     # load data and format some columns
@@ -76,13 +78,17 @@ def feature_engineer(df):
     pos_feats = pos_counts.add_prefix('pos_')
     df = pd.concat([df, pos_feats], axis=1)
 
+    df['flesch_kincaid_grade'] = df['text'].apply(flesch_kincaid_grade)
+
+    # sentiment analysis
+    df['polarity'] = df['text'].apply(lambda x: TextBlob(x).sentiment.polarity)
+
+
     tfidf = TfidfVectorizer(max_features=100, stop_words='english')
     tfidf_matrix = tfidf.fit_transform(df['text'])
     tfidf_feature_names = tfidf.get_feature_names_out()
     tfidf_features = pd.DataFrame(tfidf_matrix.toarray(), columns=tfidf_feature_names)
     df = pd.concat([df, tfidf_features], axis=1)
-
-
 
     return df
 
@@ -91,6 +97,9 @@ def load_df():
     df = feature_engineer(df)
     return df
 
-data = load_df()
-# save data to a new file
-data.to_csv('fraud_engineered.csv', index=False)
+def get_engineered_data():
+    engineered = load_df()
+    engineered.to_csv('fraud_engineered.csv', index=False)
+    return engineered
+
+get_engineered_data()
