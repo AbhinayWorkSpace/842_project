@@ -6,9 +6,10 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
-# i'm not sure if we want to use these, need to look into it a little more still
+# I'm not sure if we want to use these, need to look into it a little more still
 from gensim import corpora
 from gensim.models import LdaMulticore
+from gensim.models import Word2Vec
 import string
 import re
 
@@ -49,9 +50,7 @@ def feature_engineer(df):
     # change label header to 'fraud'
     df = df.rename(columns={'label': 'fraud', 'text_': 'text'})
 
-
     # feature engineering
-
     # XLNet embeddings will be valuable, but that is done in training and not here
 
 
@@ -92,6 +91,17 @@ def feature_engineer(df):
 
     return df
 
+def modelWord2Vec(text):
+    # Gensim documentation: https://radimrehurek.com/gensim/models/word2vec.html
+    # Create a Word2Vec model based on our pre-processed data
+    w2v_model = Word2Vec(sentences=text, vector_size=100, window=5, min_count=1, workers=4)
+    # Save a Word2Vec model
+    w2v_model.save("word2vec.model")
+    # Load a Word2Vec model
+    w2v_model = Word2Vec.load("word2vec.model")
+    # When we want to train the model, we'll use model.train()
+    # model.train()
+
 def load_df():
     df = pd.read_csv('fraud.csv')
     df = feature_engineer(df)
@@ -99,6 +109,7 @@ def load_df():
 
 def get_engineered_data():
     engineered = load_df()
+    modelWord2Vec(engineered)
     engineered.to_csv('fraud_engineered.csv', index=False)
     return engineered
 
