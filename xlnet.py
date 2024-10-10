@@ -33,6 +33,16 @@ def prepare_data(file_p):
 
     return texts, labels, features, cols
 
+def tokenize(texts, tokenizer, max_len=128):
+    return tokenizer.batch_encode_plus(
+        texts,
+        max_length=max_len,
+        truncation=True,
+        padding='max_length',
+        return_tensors='pt',
+        return_attention_mask=True,
+    )
+
 
 def train(model, train_loader, device, epochs=3, lr=2e-5):
     opt = AdamW(model.parameters(), lr)
@@ -64,5 +74,44 @@ def evaluate(model, loader, device):
             all_labels.extend(labels.cpu().numpy())
     return classification_report(all_labels, all_preds)
 
+
+def test(model, test_data, device):
+    return evaluate(model, test_data, device)
+
 def main():
     texts, labels, features, cols = prepare_data('fraud_engineered.csv')
+
+    # normalize our features
+    scaler = StandardScaler()
+    features = scaler.fit_transform(features)
+
+    # split the data into train and test data with a 90:10 split
+    X_train, X_test, y_train, y_test, feats_train, feats_test = train_test_split(texts, labels, features, test_size=0.1, random_state=42)
+
+    # split train into test data; keep 80 of the 90 percent as train and the other 10 as validation
+    X_train, X_val, y_train, y_val, feats_train, feats_val = train_test_split(X_train, y_train, feats_train, test_size=0.11, random_state=42)
+
+    # tokenizer and model
+    tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
+    model = XLNetWithFeats(num_labels=2, num_feats=features.shape[1])
+
+    # prepare the data
+    train_enc = tokenize(X_train, tokenizer)
+    val_enc = tokenize(X_val, tokenizer)
+
+    train_dataset = TensorDataset(train_enc['input_ids'], train_enc['attention_mask'], torch.tensor(feats_train, dtype=torch.float), torch.tensor(y_train))
+    val_dataset = TensorDataset(val_enc['input_ids'], val_enc['attention_mask'], torch.tensor(feats_val, dtype=torch.float), torch.tensor(y_val))
+
+    train_loader = DataLoader(train_dataset, sampler=RandomSampler(train_dataset), batch_size=16)
+    val_loader = DataLoader(val_dataset, sampler=SequentialSampler(val_dataset), batch_size=16)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+
+    train(model, train_loader, device)
+
+    print(evaluate(model, val_loader, device))
+
+
+if __name__ == '__main__':
+    main()
