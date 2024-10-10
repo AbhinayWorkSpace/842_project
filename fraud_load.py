@@ -51,16 +51,13 @@ def feature_engineer(df):
     df = df.rename(columns={'label': 'fraud', 'text_': 'text'})
 
     # feature engineering
-    # XLNet embeddings will be valuable, but that is done in training and not here
-
 
     # one hot encoding of category
     # I'm not totally certain if we'll want this but i thought it can't hurt for now
-    # if we dont want it we can just drop the column
 
     # going to try leaving this out for now too, but this would probably come back before pos
     # df = pd.get_dummies(df, columns=['category'], prefix='category')
-    # df.drop(columns=['category'], inplace=True)
+    df.drop(columns=['category'], inplace=True)
 
     df['normalized_rating'] = df['rating'] / 5.0
 
