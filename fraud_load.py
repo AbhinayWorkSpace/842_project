@@ -59,7 +59,7 @@ def feature_engineer(df):
     # if we dont want it we can just drop the column
 
     # going to try leaving this out for now too, but this would probably come back before pos
-    df = pd.get_dummies(df, columns=['category'], prefix='category')
+    # df = pd.get_dummies(df, columns=['category'], prefix='category')
     # df.drop(columns=['category'], inplace=True)
 
     df['normalized_rating'] = df['rating'] / 5.0
