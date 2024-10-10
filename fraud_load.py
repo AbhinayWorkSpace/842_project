@@ -57,6 +57,8 @@ def feature_engineer(df):
     # one hot encoding of category
     # I'm not totally certain if we'll want this but i thought it can't hurt for now
     # if we dont want it we can just drop the column
+
+    # going to try leaving this out for now too, but this would probably come back before pos
     df = pd.get_dummies(df, columns=['category'], prefix='category')
     # df.drop(columns=['category'], inplace=True)
 
@@ -73,9 +75,10 @@ def feature_engineer(df):
     df['punctuation_ratio'] = df['punctuation_count'] / df['text_length']
     df['uppercase_ratio'] = df['text'].apply(lambda x: len([c for c in x if c.isupper()])) / df['text_length']
 
-    pos_counts = df['text'].apply(get_pos_counts)
-    pos_feats = pos_counts.add_prefix('pos_')
-    df = pd.concat([df, pos_feats], axis=1)
+    # I'm taking this out for now, i think it makes the data too sparse and too high dimensional
+    # pos_counts = df['text'].apply(get_pos_counts)
+    # pos_feats = pos_counts.add_prefix('pos_')
+    # df = pd.concat([df, pos_feats], axis=1)
 
     df['flesch_kincaid_grade'] = df['text'].apply(flesch_kincaid_grade)
 
