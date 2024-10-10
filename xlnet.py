@@ -85,11 +85,9 @@ def main():
     scaler = StandardScaler()
     features = scaler.fit_transform(features)
 
-    # split the data into train and test data with a 90:10 split
-    X_train, X_test, y_train, y_test, feats_train, feats_test = train_test_split(texts, labels, features, test_size=0.1, random_state=42)
-
-    # split train into test data; keep 80 of the 90 percent as train and the other 10 as validation
-    X_train, X_val, y_train, y_val, feats_train, feats_val = train_test_split(X_train, y_train, feats_train, test_size=0.11, random_state=42)
+    # split data into 80:10:10 train:val:test
+    X_train, X_val, y_train, y_val, feats_train, feats_val = train_test_split(texts, labels, features, test_size=0.2, random_state=42)
+    X_val, X_test, y_val, y_test, feats_val, feats_test = train_test_split(X_val, y_val, feats_val, test_size=0.5, random_state=42)
 
     # tokenizer and model
     tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
