@@ -13,11 +13,11 @@ class XLNetWithFeats(torch.nn.Module):
         super().__init__()
         self.xlnet = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=num_labels)
         self.feats = torch.nn.Linear(num_feats, 64)
-        self.classifier = torch.nn.Linear(self.xlnet.config.hidden_size + 64, num_labels)
+        self.classifier = torch.nn.Linear(self.xlnet.config.d_model + 64, num_labels)
 
-    def forward(self, input_ids, attention_mask, feats):
+    def forward(self, input_ids, attention_mask, feats, labels):
         outputs = self.xlnet(input_ids=input_ids, attention_mask=attention_mask)
-        pooled = outputs.logits
+        pooled = outputs.pooler_output
         feat_out = self.feats(feats)
         combined = torch.cat((pooled, feat_out), dim=1)
         return self.classifier(combined)
@@ -51,10 +51,10 @@ def train(model, train_loader, device, epochs=3, lr=2e-5):
         model.train()
         for batch in tqdm(train_loader, desc=f'Epoch {epoch}'):
             batch = tuple(t.to(device) for t in batch)
-            inputs, labels = {'input_ids': batch[0], 'attention_mask': batch[1], 'feats': batch[2]}, batch[3]
+            inputs = {'input_ids': batch[0], 'attention_mask': batch[1], 'feats': batch[2], 'labels': batch[3]}
 
             outputs = model(**inputs)
-            loss = torch.nn.functional.cross_entropy(outputs, labels)
+            loss = outputs.loss
             loss.backward()
             opt.step()
             opt.zero_grad()
@@ -91,24 +91,35 @@ def main():
 
     # tokenizer and model
     tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
-    model = XLNetWithFeats(num_labels=2, num_feats=features.shape[1])
 
-    # prepare the data
-    train_enc = tokenize(X_train, tokenizer)
-    val_enc = tokenize(X_val, tokenizer)
 
-    train_dataset = TensorDataset(train_enc['input_ids'], train_enc['attention_mask'], torch.tensor(feats_train, dtype=torch.float), torch.tensor(y_train))
-    val_dataset = TensorDataset(val_enc['input_ids'], val_enc['attention_mask'], torch.tensor(feats_val, dtype=torch.float), torch.tensor(y_val))
+    # labels = {0: 'OR', 1: 'CG'}
+    # model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
+    # text = ['Good quality and good price. I love the look and feel of this pillow.']
+    # enco = tokenizer(text, padding='max_length', max_length=128, return_tensors='pt')
+    # out = model(**enco)
+    # preds = torch.argmax(out.logits, dim=1)
+    # print(preds)
 
-    train_loader = DataLoader(train_dataset, sampler=RandomSampler(train_dataset), batch_size=16)
-    val_loader = DataLoader(val_dataset, sampler=SequentialSampler(val_dataset), batch_size=16)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.to(device)
-
-    train(model, train_loader, device)
-
-    print(evaluate(model, val_loader, device))
+    # model = XLNetWithFeats(num_labels=2, num_feats=features.shape[1])
+    #
+    # # prepare the data
+    # train_enc = tokenize(X_train, tokenizer)
+    # val_enc = tokenize(X_val, tokenizer)
+    #
+    # train_dataset = TensorDataset(train_enc['input_ids'], train_enc['attention_mask'], torch.tensor(feats_train, dtype=torch.float), torch.tensor(y_train))
+    # val_dataset = TensorDataset(val_enc['input_ids'], val_enc['attention_mask'], torch.tensor(feats_val, dtype=torch.float), torch.tensor(y_val))
+    #
+    # train_loader = DataLoader(train_dataset, sampler=RandomSampler(train_dataset), batch_size=16)
+    # val_loader = DataLoader(val_dataset, sampler=SequentialSampler(val_dataset), batch_size=16)
+    #
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # model.to(device)
+    #
+    # train(model, train_loader, device)
+    #
+    # print(evaluate(model, val_loader, device))
 
 
 if __name__ == '__main__':
