@@ -4,3 +4,5 @@ fraud.csv
 nltk_data
 fraud_engineered.csv
 word2vec.model
+results
+logs
