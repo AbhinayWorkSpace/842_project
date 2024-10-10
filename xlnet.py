@@ -132,6 +132,8 @@ def main():
 
     model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
 
+    print('Beginning training')
+
     args = TrainingArguments(
         output_dir='./results',
         num_train_epochs=3,
@@ -150,7 +152,8 @@ def main():
         eval_dataset=val_dataset,
     )
     trainer.train()
-
+    # save model to a file
+    model.save_pretrained('xlnet_fraud_model')
     eval_results = trainer.evaluate()
     print(eval_results)
 
