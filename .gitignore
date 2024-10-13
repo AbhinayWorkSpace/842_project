@@ -6,3 +6,4 @@ fraud_engineered.csv
 word2vec.model
 results
 logs
+xlnet_fraud_model*

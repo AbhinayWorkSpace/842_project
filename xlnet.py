@@ -152,8 +152,10 @@ def main():
         eval_dataset=val_dataset,
     )
     trainer.train()
-    # save model to a file
     model.save_pretrained('xlnet_fraud_model')
+    # print the training accuracy
+    print('Training accuracy:', test(model, train_dataset, 'cpu'))
+    # save model to a file
     eval_results = trainer.evaluate()
     print(eval_results)
 
