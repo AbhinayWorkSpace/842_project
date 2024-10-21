@@ -69,7 +69,7 @@ def evaluate(model, loader, device):
     all_labels = []
     with torch.no_grad():
         for batch in tqdm(loader, desc='Evaluating'):
-            batch = tuple(t.to(device) for t in batch)
+            batch = tuple(batch[t].to(device) for t in batch)
             inputs, labels = {'input_ids': batch[0], 'attention_mask': batch[1], 'feats': batch[2]}, batch[3]
 
             outputs = model(**inputs)
@@ -130,34 +130,34 @@ def main():
     train_dataset = dataset(X_train, y_train)
     val_dataset = dataset(X_val, y_val)
 
-    model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
-
-    print('Beginning training')
-
-    args = TrainingArguments(
-        output_dir='./results',
-        num_train_epochs=3,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
-        warmup_steps=500,
-        weight_decay=0.01,
-        logging_dir='./logs',
-        logging_steps=10,
-    )
-
-    trainer = Trainer(
-        model=model,
-        args=args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-    )
-    trainer.train()
-    model.save_pretrained('xlnet_fraud_model')
-    # print the training accuracy
-    print('Training accuracy:', test(model, train_dataset, 'cpu'))
-    # save model to a file
-    eval_results = trainer.evaluate()
-    print(eval_results)
+    # model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
+    #
+    # print('Beginning training')
+    #
+    # args = TrainingArguments(
+    #     output_dir='./results',
+    #     num_train_epochs=3,
+    #     per_device_train_batch_size=16,
+    #     per_device_eval_batch_size=16,
+    #     warmup_steps=500,
+    #     weight_decay=0.01,
+    #     logging_dir='./logs',
+    #     logging_steps=10,
+    # )
+    #
+    # trainer = Trainer(
+    #     model=model,
+    #     args=args,
+    #     train_dataset=train_dataset,
+    #     eval_dataset=val_dataset,
+    # )
+    # trainer.train()
+    # model.save_pretrained('xlnet_fraud_model')
+    # # print the training accuracy
+    # print('Training accuracy:', test(model, train_dataset, 'cpu'))
+    # # save model to a file
+    # eval_results = trainer.evaluate()
+    # print(eval_results)
 
 
     # model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
@@ -166,6 +166,12 @@ def main():
     # out = model(**enco)
     # preds = torch.argmax(out.logits, dim=1)
     # print(preds)
+
+    # load the model and use it to evaluate on the test data
+    model = XLNetForSequenceClassification.from_pretrained('./xlnet_fraud_model')
+    test_dataset = dataset(X_test, y_test)
+    print('Test accuracy:', test(model, test_dataset, 'cpu'))
+
 
 
     # model = XLNetWithFeats(num_labels=2, num_feats=features.shape[1])
