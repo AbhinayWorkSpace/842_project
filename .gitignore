@@ -7,3 +7,5 @@ word2vec.model
 results
 logs
 xlnet_fraud_model*
+spam.json
+spam_50000.csv
