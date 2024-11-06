@@ -16,6 +16,7 @@ def concat_files():
     second = prepare_data("spam_50000.csv")
     texts = first[0] + second[0]
     labels = first[1] + second[1]
-    features = first[2] + second[2]
-    cols = first[3] + second[3]
-    return texts, labels, features, cols
+    # features = first[2] + second[2]
+    # cols = first[3] + second[3]
+    # return texts, labels, features, cols
+    return texts, labels

@@ -1,10 +1,12 @@
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, TrainingArguments, Trainer
-
 from combine_fraud_data import concat_files
 
-text, labels, features, cols = concat_files()
+# text, labels, features, cols = concat_files()
+text, labels = concat_files()
+print('Data loaded')
+
 
 tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
 num_labels = len(set(labels))
@@ -14,38 +16,42 @@ model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_l
 X_train, X_temp, y_train, y_temp = train_test_split(text, labels, test_size=0.2, random_state=57)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=57)
 
-def tokenize(texts):
+def tokenize(data):
     return tokenizer(
-        texts,
+        data['text'],
         padding=True,
         truncation=True,
         max_length=256,
-        return_tensors='pt'
+        return_tensors=None
     )
 
 
 train_data = Dataset.from_dict({
     'text': X_train,
-    'label': y_train
+    'labels': y_train
 })
 
 val_data = Dataset.from_dict({
     'text': X_val,
-    'label': y_val
+    'labels': y_val
 })
 
 test_data = Dataset.from_dict({
     'text': X_test,
-    'label': y_test
+    'labels': y_test
 })
 
-train_data = train_data.map(tokenize, batched=True)
-val_data = val_data.map(tokenize, batched=True)
-test_data = test_data.map(tokenize, batched=True)
+print('Tokenizing data')
+train_data = train_data.map(tokenize, batched=True, remove_columns=['text'])
+print('Train data tokenized')
+val_data = val_data.map(tokenize, batched=True, remove_columns=['text'])
+print('Val data tokenized')
+test_data = test_data.map(tokenize, batched=True, remove_columns=['text'])
+print('Test data tokenized')
 
-train_data.set_format('torch', columns=['input_ids', 'attention_mask', 'label'])
-val_data.set_format('torch', columns=['input_ids', 'attention_mask', 'label'])
-test_data.set_format('torch', columns=['input_ids', 'attention_mask', 'label'])
+train_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+val_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+test_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 
 training_args = TrainingArguments(
     output_dir='./xlnet-results',
@@ -57,6 +63,7 @@ training_args = TrainingArguments(
     logging_dir='./logs',
     logging_steps=10,
     eval_strategy="steps",
+    eval_steps=100,
     save_steps=100,
     load_best_model_at_end=True,
 )
@@ -67,8 +74,11 @@ trainer = Trainer(
     train_dataset=train_data,
     eval_dataset=val_data,
 )
-
+print('Beginning training')
 trainer.train()
+print('Training complete')
 
 trainer.save_model('./xlnet-fraud-model-v3')
 tokenizer.save_pretrained('./xlnet-fraud-model-v3')
+
+print(trainer.evaluate(test_data))

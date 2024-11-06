@@ -8,6 +8,7 @@ from tqdm import tqdm
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 
 from combine_fraud_data import prepare_data
+from fraud_utils import evaluate
 
 
 class XLNetWithFeats(torch.nn.Module):
@@ -80,27 +81,6 @@ def train(model, train_loader, device, epochs=3, lr=2e-5):
             loss.backward()
             optimizer.step()
 
-def evaluate(model, loader, device):
-    model.eval()
-    all_preds = []
-    all_labels = []
-    with torch.no_grad():
-        for batch in tqdm(loader, desc='Evaluating'):
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
-            # feats = batch['feats'].to(device)
-            labels = batch['labels'].to(device)
-
-            # uncomment this line to use the model with features
-            # outputs = model(input_ids=input_ids, attention_mask=attention_mask, feats=feats)
-
-            # use this line to use the model without features
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-
-            preds = torch.argmax(outputs.logits, dim=1)
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
-    return classification_report(all_labels, all_preds)
 
 def main():
     # Set random seed for reproducibility
