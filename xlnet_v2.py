@@ -1,13 +1,14 @@
-import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-from sklearn.preprocessing import StandardScaler
 import torch
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset, DataLoader
-from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 from tqdm import tqdm
+from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
+
 from combine_fraud_data import prepare_data
+
 
 class XLNetWithFeats(torch.nn.Module):
     def __init__(self, num_labels, num_feats):
