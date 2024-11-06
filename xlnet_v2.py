@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 from tqdm import tqdm
+from combine_fraud_data import prepare_data
 
 class XLNetWithFeats(torch.nn.Module):
     def __init__(self, num_labels, num_feats):
@@ -53,13 +54,6 @@ class CustomDatasetNoFeatures(Dataset):
         return len(self.labels)
 
 
-def prepare_data(file_path):
-    df = pd.read_csv(file_path)
-    texts = df['text'].tolist()
-    labels = df['fraud'].astype(int).tolist()
-    cols = [col for col in df.columns if col not in ['text', 'fraud']]
-    features = df[cols].values
-    return texts, labels, features, cols
 
 def tokenize(texts, tokenizer, max_len=128):
     return tokenizer(
