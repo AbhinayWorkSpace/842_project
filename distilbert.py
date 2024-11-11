@@ -111,7 +111,7 @@ print('Beginning training')
 trainer.train()
 print('Training complete')
 
-trainer.save_model('./xlnet-fraud-model-v3')
-tokenizer.save_pretrained('./xlnet-fraud-model-v3')
+trainer.save_model('./distilbert-fraud-model')
+tokenizer.save_pretrained('./distilbert-fraud-model')
 
 print(trainer.evaluate(test_data))
