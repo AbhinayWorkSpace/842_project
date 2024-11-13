@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 
-from combine_fraud_data import prepare_data
+from utils import prepare_data
 from fraud_utils import evaluate
 
 

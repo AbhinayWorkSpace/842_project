@@ -1,10 +1,8 @@
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, TrainingArguments, Trainer
-from combine_fraud_data import concat_files
 
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-import numpy as np
+from utils import concat_files, compute_metrics
 
 # text, labels, features, cols = concat_files()
 text, labels = concat_files()
@@ -56,34 +54,6 @@ train_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels']
 val_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 test_data.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 
-def compute_metrics(eval_pred):
-    """
-    Compute metrics for the model evaluation.
-
-    Args:
-        eval_pred: tuple containing predictions and labels
-            predictions: numpy array of predictions
-            labels: numpy array of true labels
-
-    Returns:
-        dict: Dictionary containing accuracy and F1 scores
-    """
-    predictions, labels = eval_pred
-    predictions = np.argmax(predictions, axis=1)
-
-    # Calculate accuracy
-    accuracy = accuracy_score(labels, predictions)
-
-    # Calculate precision, recall, and F1
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='weighted')
-
-    return {
-        'accuracy': accuracy,
-        'f1': f1,
-        'precision': precision,
-        'recall': recall
-    }
-
 
 training_args = TrainingArguments(
     output_dir='./distilbert-results',
@@ -95,9 +65,10 @@ training_args = TrainingArguments(
     logging_dir='./logs',
     logging_steps=10,
     eval_strategy="steps",
-    eval_steps=100,
-    save_steps=100,
+    eval_steps=1000,
+    save_steps=1000,
     load_best_model_at_end=True,
+    metric_for_best_model='eval_loss'
 )
 
 trainer = Trainer(

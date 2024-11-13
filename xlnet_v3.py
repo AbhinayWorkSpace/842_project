@@ -1,7 +1,7 @@
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, TrainingArguments, Trainer
-from combine_fraud_data import concat_files
+from utils import concat_files
 
 # text, labels, features, cols = concat_files()
 text, labels = concat_files()
@@ -63,9 +63,10 @@ training_args = TrainingArguments(
     logging_dir='./logs',
     logging_steps=10,
     eval_strategy="steps",
-    eval_steps=100,
-    save_steps=100,
+    eval_steps=1000,
+    save_steps=1000,
     load_best_model_at_end=True,
+    metric_for_best_model='eval_accuracy'
 )
 
 trainer = Trainer(
