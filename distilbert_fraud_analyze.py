@@ -14,7 +14,7 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
 )
 
-text, labels = concat_files()
+text, labels = concat_files([('AI_Human.csv', 'text', 'generated', 1.0)])
 
 def tokenize(data):
     return tokenizer(
@@ -28,6 +28,8 @@ def tokenize(data):
 
 X_train, X_temp, y_train, y_temp = train_test_split(text, labels, test_size=0.2, random_state=57)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=57)
+
+del X_temp, y_temp, X_train, y_train, X_val, y_val, labels, text
 
 test_data = Dataset.from_dict({
     'text': X_test,

@@ -4,21 +4,26 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 ### Important: 1 = AI generated, 0 = human generated
-def prepare_data(file_path, text_label="text_", fraud_label="label"):
+def prepare_data(file_path, text_label="text_", fraud_label="label", fraud_indicator="CG"):
     df = pd.read_csv(file_path)
     texts = df[text_label].tolist()
     # set CG to 1 and non-CG to 0
-    df[fraud_label] = df[fraud_label].apply(lambda x: 1 if x == "CG" else 0)
+    df[fraud_label] = df[fraud_label].apply(lambda x: 1.0 if x == fraud_indicator else 0.0)
     labels = df[fraud_label].tolist()
     cols = [col for col in df.columns if col not in [text_label, fraud_label]]
     features = df[cols].values
     return texts, labels, features, cols
 
-def concat_files():
+def concat_files(other_files = None):
     first = prepare_data("fraud.csv")
     second = prepare_data("spam_50000.csv")
     texts = first[0] + second[0]
     labels = first[1] + second[1]
+    if other_files is not None:
+        for file, text_label, fraud_label, fraud_indicator in other_files:
+            result = prepare_data(file, text_label, fraud_label, fraud_indicator)
+            texts += result[0]
+            labels += result[1]
     # features = first[2] + second[2]
     # cols = first[3] + second[3]
     # return texts, labels, features, cols
