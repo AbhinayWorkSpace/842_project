@@ -16,6 +16,7 @@ model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_l
 X_train, X_temp, y_train, y_temp = train_test_split(text, labels, test_size=0.2, random_state=57)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=57)
 
+del X_temp, y_temp
 def tokenize(data):
     return tokenizer(
         data['text'],

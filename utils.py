@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
+### Important: 1 = AI generated, 0 = human generated
 def prepare_data(file_path, text_label="text_", fraud_label="label"):
     df = pd.read_csv(file_path)
     texts = df[text_label].tolist()
