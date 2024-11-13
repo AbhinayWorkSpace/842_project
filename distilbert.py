@@ -5,16 +5,19 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 from utils import concat_files, compute_metrics
 
 # text, labels, features, cols = concat_files()
-text, labels = concat_files()
+# text, labels = concat_files()
+text, labels = concat_files([('AI_Human.csv', 'text', 'generated', 1.0)])
 print('Data loaded')
 
-tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-cased')
 num_labels = len(set(labels))
 model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-cased', num_labels=num_labels)
 
 # split data into 80:10:10 train:val:test
 X_train, X_temp, y_train, y_temp = train_test_split(text, labels, test_size=0.2, random_state=57)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=57)
+
+del X_temp, y_temp
 
 
 def tokenize(data):
@@ -68,7 +71,7 @@ training_args = TrainingArguments(
     eval_steps=1000,
     save_steps=1000,
     load_best_model_at_end=True,
-    metric_for_best_model='eval_loss'
+    metric_for_best_model='eval_accuracy'
 )
 
 trainer = Trainer(
