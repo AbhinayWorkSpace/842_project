@@ -12,3 +12,6 @@ spam_50000.csv
 distilbert-results*
 distilbert-fraud-model*
 AI_Human.csv
+./train_data
+./val_data
+./test_data
