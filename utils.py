@@ -8,7 +8,7 @@ def prepare_data(file_path, text_label="text_", fraud_label="label", fraud_indic
     df = pd.read_csv(file_path)
     texts = df[text_label].tolist()
     # set CG to 1 and non-CG to 0
-    df[fraud_label] = df[fraud_label].apply(lambda x: 1.0 if x == fraud_indicator else 0.0)
+    df[fraud_label] = df[fraud_label].apply(lambda x: 1 if x == fraud_indicator else 0)
     labels = df[fraud_label].tolist()
     cols = [col for col in df.columns if col not in [text_label, fraud_label]]
     features = df[cols].values
