@@ -1,10 +1,10 @@
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 from transformers import XLNetTokenizer, XLNetForSequenceClassification, TrainingArguments, Trainer
-from utils import concat_files
+from utils import concat_files, compute_metrics
 
 # text, labels, features, cols = concat_files()
-text, labels = concat_files()
+text, labels = concat_files([('AI_Human.csv', 'text', 'generated', 1.0)])
 print('Data loaded')
 
 
@@ -75,6 +75,7 @@ trainer = Trainer(
     args=training_args,
     train_dataset=train_data,
     eval_dataset=val_data,
+    compute_metrics=compute_metrics
 )
 print('Beginning training')
 trainer.train()
@@ -82,5 +83,6 @@ print('Training complete')
 
 trainer.save_model('./xlnet-fraud-model-v3')
 tokenizer.save_pretrained('./xlnet-fraud-model-v3')
+eval = trainer.evaluate(test_data)
 
-print(trainer.evaluate(test_data))
+print(eval)
