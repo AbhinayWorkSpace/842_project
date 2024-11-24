@@ -4,13 +4,14 @@ from transformers import XLNetTokenizer, XLNetForSequenceClassification, Trainin
 from utils import concat_files, compute_metrics
 
 # text, labels, features, cols = concat_files()
-text, labels = concat_files([('AI_Human.csv', 'text', 'generated', 1.0)])
+# text, labels = concat_files([('AI_Human.csv', 'text', 'generated', 1.0)])
+text, labels = concat_files()
 print('Data loaded')
 
 
-tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
+tokenizer = XLNetTokenizer.from_pretrained('./xlnet-fraud-model-v3')
 num_labels = len(set(labels))
-model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=num_labels)
+model = XLNetForSequenceClassification.from_pretrained('xlnet-fraud-model-v3', num_labels=num_labels)
 
 # split data into 80:10:10 train:val:test
 X_train, X_temp, y_train, y_temp = train_test_split(text, labels, test_size=0.2, random_state=57)
@@ -77,12 +78,12 @@ trainer = Trainer(
     eval_dataset=val_data,
     compute_metrics=compute_metrics
 )
-print('Beginning training')
-trainer.train()
-print('Training complete')
+# print('Beginning training')
+# trainer.train()
+# print('Training complete')
 
-trainer.save_model('./xlnet-fraud-model-v3')
-tokenizer.save_pretrained('./xlnet-fraud-model-v3')
+# trainer.save_model('./xlnet-fraud-model-v3')
+# tokenizer.save_pretrained('./xlnet-fraud-model-v3')
 eval = trainer.evaluate(test_data)
 
 print(eval)
